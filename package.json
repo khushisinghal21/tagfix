@@ -1,0 +1,15 @@
+{
+  "name": "tagfix",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TagFix: an AI FASTag support copilot that checks the account's transactions before it answers. Prototype built for Park+.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "build": "node scripts/build.mjs",
+    "metrics": "node scripts/metrics.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  }
+}
