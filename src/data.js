@@ -2,15 +2,17 @@
 // tariffs, accounts and transactions are made up for the prototype.
 // tariff = single journey; returnTariff = round trip within 24h. On a return leg the tag
 // is charged returnTariff minus the single fare already paid.
+// annualPass = whether NHAI's FASTag Annual Pass applies. It covers National Highway and
+// National Expressway plazas only; state expressways and state highways charge as normal.
 
 export const PLAZAS = {
-  KHERKI: { id: "KHERKI", name: "Kherki Daula, NH-48 (Gurugram)", lat: 28.3946, lon: 76.9813,
+  KHERKI: { id: "KHERKI", operator: "NHAI", annualPass: true, name: "Kherki Daula, NH-48 (Gurugram)", lat: 28.3946, lon: 76.9813,
     tariff: { car: 80, lcv: 130, truck: 270 }, returnTariff: { car: 120, lcv: 195, truck: 405 } },
-  SHAHJ: { id: "SHAHJ", name: "Shahjahanpur, NH-48 (Rajasthan)", lat: 27.9996, lon: 76.4295,
+  SHAHJ: { id: "SHAHJ", operator: "NHAI", annualPass: true, name: "Shahjahanpur, NH-48 (Rajasthan)", lat: 27.9996, lon: 76.4295,
     tariff: { car: 140, lcv: 225, truck: 470 }, returnTariff: { car: 210, lcv: 340, truck: 705 } },
-  PANIPAT: { id: "PANIPAT", name: "Panipat, NH-44 (Haryana)", lat: 29.3909, lon: 76.9635,
+  PANIPAT: { id: "PANIPAT", operator: "NHAI", annualPass: true, name: "Panipat, NH-44 (Haryana)", lat: 29.3909, lon: 76.9635,
     tariff: { car: 165, lcv: 265, truck: 555 }, returnTariff: { car: 250, lcv: 400, truck: 830 } },
-  KHALAPUR: { id: "KHALAPUR", name: "Khalapur, Mumbai–Pune Expressway", lat: 18.8327, lon: 73.2862,
+  KHALAPUR: { id: "KHALAPUR", operator: "MSRDC (state)", annualPass: false, name: "Khalapur, Mumbai–Pune Expressway", lat: 18.8327, lon: 73.2862,
     tariff: { car: 320, lcv: 495, truck: 940 }, returnTariff: { car: 480, lcv: 745, truck: 1410 } },
 };
 
@@ -95,6 +97,64 @@ export const ACCOUNTS = {
     transactions: [
       { id: "TX-8001", type: "recharge", time: t("09T11:00:00"), amount: 800, status: "success" },
       { id: "TX-8002", type: "toll", time: t("12T19:20:00"), amount: 140, plazaId: "SHAHJ", status: "pending" },
+    ],
+  },
+
+  // Annual Pass holder charged at a covered NH plaza while the pass was active.
+  dev: {
+    key: "dev", owner: "Dev", vehicleNo: "RJ14 KX 2208", vehicleClass: "car",
+    tagId: "TAG-8834", balance: 460, minBalance: 100, status: "active", kyc: "full",
+    annualPass: { activatedAt: "2026-08-20T11:05:00+05:30", expiresAt: "2027-08-20T11:05:00+05:30", tripLimit: 200, tripsUsed: 37, exhaustedAt: null },
+    persona: "Has the Annual Pass, still charged at an NH plaza",
+    transactions: [
+      { id: "TX-9001", type: "recharge", time: t("01T10:00:00"), amount: 600, status: "success" },
+      { id: "TX-9002", type: "toll", time: t("12T18:10:00"), amount: 0, plazaId: "KHERKI", status: "success", passTrip: true },
+      { id: "TX-9003", type: "toll", time: t("13T07:30:00"), amount: 140, plazaId: "SHAHJ", status: "success" },
+    ],
+  },
+  // Annual Pass holder charged on a state expressway, which the pass doesn't cover.
+  aditi: {
+    key: "aditi", owner: "Aditi", vehicleNo: "MH14 GT 6619", vehicleClass: "car",
+    tagId: "TAG-4471", balance: 880, minBalance: 100, status: "active", kyc: "full",
+    annualPass: { activatedAt: "2026-03-02T09:00:00+05:30", expiresAt: "2027-03-02T09:00:00+05:30", tripLimit: 200, tripsUsed: 64, exhaustedAt: null },
+    persona: "Annual Pass active, charged on the Mumbai–Pune Expressway",
+    transactions: [
+      { id: "TX-9101", type: "recharge", time: t("05T12:00:00"), amount: 1200, status: "success" },
+      { id: "TX-9102", type: "toll", time: t("11T08:00:00"), amount: 0, plazaId: "KHERKI", status: "success", passTrip: true },
+      { id: "TX-9103", type: "toll", time: t("12T18:00:00"), amount: 320, plazaId: "KHALAPUR", status: "success" },
+    ],
+  },
+  // Annual Pass used up (200 trips) two days ago; the tag is back to normal charging.
+  farhan: {
+    key: "farhan", owner: "Farhan", vehicleNo: "HR29 AC 7710", vehicleClass: "car",
+    tagId: "TAG-3392", balance: 1140, minBalance: 100, status: "active", kyc: "full",
+    annualPass: { activatedAt: "2025-10-20T10:00:00+05:30", expiresAt: "2026-10-20T10:00:00+05:30", tripLimit: 200, tripsUsed: 200, exhaustedAt: t("11T19:05:00") },
+    persona: "Annual Pass trips ran out; now being charged",
+    transactions: [
+      { id: "TX-9201", type: "toll", time: t("11T08:20:00"), amount: 0, plazaId: "KHERKI", status: "success", passTrip: true },
+      { id: "TX-9202", type: "toll", time: t("11T19:05:00"), amount: 0, plazaId: "KHERKI", status: "success", passTrip: true },
+      { id: "TX-9203", type: "toll", time: t("12T09:10:00"), amount: 80, plazaId: "KHERKI", status: "success" },
+    ],
+  },
+  // Paid at the booth by UPI because the tag didn't read, then the tag was debited too.
+  // The booth payment isn't visible in the FASTag account.
+  isha: {
+    key: "isha", owner: "Isha", vehicleNo: "DL4C NB 3307", vehicleClass: "car",
+    tagId: "TAG-5560", balance: 335, minBalance: 100, status: "active", kyc: "full",
+    persona: "Paid at the booth, then the tag was debited too",
+    transactions: [
+      { id: "TX-9301", type: "recharge", time: t("07T15:00:00"), amount: 500, status: "success" },
+      { id: "TX-9302", type: "toll", time: t("13T09:40:00"), postedTime: t("13T09:52:00"), amount: 165, plazaId: "PANIPAT", status: "success" },
+    ],
+  },
+  // A toll read on 10 Oct that the plaza only posted this morning.
+  tanvi: {
+    key: "tanvi", owner: "Tanvi", vehicleNo: "HR26 FB 1180", vehicleClass: "car",
+    tagId: "TAG-6205", balance: 470, minBalance: 100, status: "active", kyc: "full",
+    persona: "SMS today for a toll read three days ago",
+    transactions: [
+      { id: "TX-9401", type: "recharge", time: t("06T10:00:00"), amount: 550, status: "success" },
+      { id: "TX-9402", type: "toll", time: t("10T18:40:00"), postedTime: t("13T08:02:00"), amount: 80, plazaId: "KHERKI", status: "success" },
     ],
   },
 };

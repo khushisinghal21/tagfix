@@ -81,3 +81,58 @@ export const HELD_OUT_2 = [
   { account: "meera", text: "SMS aaya 140 kata, passbook mein entry nahi hai", gold: { intent: "passbook_missing", decision: "auto_resolved" } },
   { account: "kabir", text: "please update the address on my fastag account", gold: { intent: "other", decision: "escalated" } },
 ];
+
+// Third held-out set: written and committed BEFORE the annual-pass, booth-payment and
+// late-posting work, and before any rule changes from the Held-out 2 review. Phrasing
+// follows public complaint patterns (app reviews, Team-BHP threads, Park+ help-centre
+// categories). Includes non-FASTag Park+ topics, which must go to an agent untouched.
+// Scored once after the changes; not used to tune anything.
+export const HELD_OUT_3 = [
+  // Annual Pass, charged at a covered NH plaza while active → dispute
+  { account: "dev", text: "I have the annual pass but ₹140 still got deducted at Shahjahanpur", gold: { intent: "annual_pass", decision: "dispute_filed" } },
+  { account: "dev", text: "annual pass hai phir bhi toll kat gaya", gold: { intent: "annual_pass", decision: "dispute_filed" } },
+  { account: "dev", text: "3000 wala pass liya tha, fir bhi paise kyu kate?", gold: { intent: "annual_pass", decision: "dispute_filed" } },
+  { account: "dev", text: "वार्षिक पास होने के बाद भी टोल कटा", gold: { intent: "annual_pass", decision: "dispute_filed" } },
+  // Annual Pass, charged on a state expressway → explain
+  { account: "aditi", text: "Bought the yearly FASTag pass, why did Khalapur charge me 320?", gold: { intent: "annual_pass", decision: "auto_resolved" } },
+  { account: "aditi", text: "annual pass expressway pe kaam nahi kar raha", gold: { intent: "annual_pass", decision: "auto_resolved" } },
+  { account: "aditi", text: "toll got deducted even though my pass is active", gold: { intent: "annual_pass", decision: "auto_resolved" } },
+  // Annual Pass trips used up → explain
+  { account: "farhan", text: "my annual pass stopped working, charged 80 at kherki", gold: { intent: "annual_pass", decision: "auto_resolved" } },
+  { account: "farhan", text: "pass ke trips itni jaldi kaise khatam ho gaye", gold: { intent: "annual_pass", decision: "auto_resolved" } },
+  { account: "farhan", text: "Why is money being deducted now? I paid for the annual plan last year", gold: { intent: "annual_pass", decision: "auto_resolved" } },
+  { account: "farhan", text: "how many trips are left on my annual pass?", gold: { intent: "annual_pass", decision: "auto_resolved" } },
+  // Paid at the booth and the tag was debited too → ask for the booth receipt
+  { account: "isha", text: "tag didn't scan so I paid 165 by UPI at the booth, now fastag also deducted", gold: { intent: "paid_at_booth", decision: "needs_info" } },
+  { account: "isha", text: "cash bhi diya aur fastag se bhi kat gaya panipat pe", gold: { intent: "paid_at_booth", decision: "needs_info" } },
+  { account: "isha", text: "paid twice at panipat, once at counter and once from tag", gold: { intent: "paid_at_booth", decision: "needs_info" } },
+  // Late-posted toll → confirm the read before disputing
+  { account: "tanvi", text: "Got an SMS this morning for ₹80 at Kherki Daula but I didn't drive anywhere today", gold: { intent: "false_deduction", decision: "needs_info" } },
+  { account: "tanvi", text: "aaj subah 80 kata kherki ka, main to ghar pe thi", gold: { intent: "false_deduction", decision: "needs_info" } },
+  { account: "tanvi", text: "why deduction today for a toll I never crossed today", gold: { intent: "false_deduction", decision: "needs_info" } },
+  // Existing scenarios, new phrasing
+  { account: "rohan", text: "Two SMS for the same toll at 9:14 and 9:16, refund one", gold: { intent: "double_deduction", decision: "dispute_filed" } },
+  { account: "rohan", text: "ek hi toll ke liye 2 baar 80 rupaye", gold: { intent: "double_deduction", decision: "dispute_filed" } },
+  { account: "rohan", text: "y did u deduct 2wice", gold: { intent: "double_deduction", decision: "dispute_filed" } },
+  { account: "priya", text: "my car was parked in Pune whole day yesterday, how is there a Gurgaon toll?", gold: { intent: "false_deduction", decision: "dispute_filed" } },
+  { account: "priya", text: "someone else is using my fastag", gold: { intent: "false_deduction", decision: "dispute_filed" } },
+  { account: "priya", text: "fraud transaction kherki daula", gold: { intent: "false_deduction", decision: "dispute_filed" } },
+  { account: "arjun", text: "they charged my car as truck at Panipat", gold: { intent: "wrong_amount", decision: "dispute_filed" } },
+  { account: "arjun", text: "panipat ka toll 165 hota hai, 555 kaise?", gold: { intent: "wrong_amount", decision: "dispute_filed" } },
+  { account: "neha", text: "UPI se 500 bheja, abhi tak fastag mein nahi aaya", gold: { intent: "recharge_not_reflecting", decision: "escalated" } },
+  { account: "neha", text: "recharge done but showing low balance", gold: { intent: "recharge_not_reflecting", decision: "escalated" } },
+  { account: "vikram", text: "tag blocked at toll, had to pay extra in cash", gold: { intent: "blacklisted", decision: "auto_resolved" } },
+  { account: "vikram", text: "my fastag shows hotlisted", gold: { intent: "blacklisted", decision: "auto_resolved" } },
+  { account: "sana", text: "why is my fastag inactive? balance is 760", gold: { intent: "blacklisted", decision: "auto_resolved" } },
+  { account: "sana", text: "KYC pending likha aa raha hai, tag band hai", gold: { intent: "blacklisted", decision: "auto_resolved" } },
+  { account: "kabir", text: "Kherki took 80 going and 40 coming back, why different?", gold: { intent: "double_deduction", decision: "auto_resolved" } },
+  { account: "meera", text: "toll paid at Shahjahanpur not visible in history", gold: { intent: "passbook_missing", decision: "auto_resolved" } },
+  { account: "meera", text: "140 ka SMS aaya lekin app mein transaction nahi", gold: { intent: "passbook_missing", decision: "auto_resolved" } },
+  // Not FASTag-transaction issues → an agent, without the account hijacking them
+  { account: "rohan", text: "car wash guy didn't come today", gold: { intent: "other", decision: "escalated" } },
+  { account: "neha", text: "challan payment pending for 5 days", gold: { intent: "other", decision: "escalated" } },
+  { account: "arjun", text: "want to change vehicle number on my fastag", gold: { intent: "other", decision: "escalated" } },
+  { account: "meera", text: "when will my new fastag be delivered", gold: { intent: "other", decision: "escalated" } },
+  { account: "kabir", text: "how do I close my fastag and get balance back", gold: { intent: "other", decision: "escalated" } },
+  { account: "sana", text: "parking booking refund not received", gold: { intent: "other", decision: "escalated" } },
+];
