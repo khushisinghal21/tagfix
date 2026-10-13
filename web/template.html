@@ -53,7 +53,7 @@ main { padding-inline: 16px; padding-block: 20px 48px; }
 .eyebrow, .box h2.eyebrow { font: 700 11.5px var(--f-display); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 18px 0 8px; }
 .eyebrow:first-child, .box h2.eyebrow:first-child { margin-top: 0; }
 
-#account-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+#account-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; max-height: 360px; overflow-y: auto; padding-right: 2px; }
 .acct { text-align: left; background: var(--sunk); border: 1px solid transparent; border-radius: 8px; padding: 8px 10px; display: grid; gap: 2px; }
 .acct:hover { border-color: var(--line); }
 .acct.on { background: var(--accent-soft); border-color: var(--accent); }
@@ -122,7 +122,7 @@ main { padding-inline: 16px; padding-block: 20px 48px; }
 .stat-n { font-size: 26px; font-weight: 600; color: var(--accent); }
 .stat-l { font-size: 13px; color: var(--muted); }
 .table-wrap { overflow-x: auto; margin-top: 16px; }
-table { border-collapse: collapse; width: 100%; min-width: 720px; font-size: 13.5px; }
+table { border-collapse: collapse; width: 100%; min-width: 860px; font-size: 13.5px; }
 th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
 thead th { font: 700 11.5px var(--f-display); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
 tbody th { font: 700 14px var(--f-display); }
@@ -133,6 +133,9 @@ tr.set-first > * { border-top: 2px solid var(--line); }
 .pct { display: inline-block; min-width: 3.5ch; }
 .notes { display: grid; gap: 6px; padding-left: 18px; max-width: 80ch; }
 .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; margin-top: 20px; }
+.two.first { margin-top: 0; }
+.steps { padding-left: 20px; display: grid; gap: 6px; }
+.passline { margin: 10px 0 0; display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; }
 @media (max-width: 880px) { .two { grid-template-columns: minmax(0, 1fr); } }
 #score-misses { padding-left: 18px; display: grid; gap: 8px; margin: 0; }
 
@@ -159,6 +162,7 @@ footer { max-width: 1180px; margin: 28px auto 0; font-size: 12.5px; color: var(-
     <nav class="tabs" role="tablist" aria-label="Sections">
       <button type="button" role="tab" data-tab="try" aria-selected="true">Try it</button>
       <button type="button" role="tab" data-tab="score" aria-selected="false">Scorecard</button>
+      <button type="button" role="tab" data-tab="product" aria-selected="false">Product case</button>
       <button type="button" role="tab" data-tab="how" aria-selected="false">How it works</button>
     </nav>
   </div>
@@ -195,9 +199,72 @@ footer { max-width: 1180px; margin: 28px auto 0; font-size: 12.5px; color: var(-
         <ul class="notes" id="score-notes"></ul>
       </div>
       <div class="box">
-        <h2>Misses on Held-out 2</h2>
+        <h2>Held-out 3: first-run misses</h2>
         <ul id="score-misses"></ul>
-        <p class="small muted">Both failed safe: the customer got a human, not a wrong refund. The fix is the LLM reading layer, which these numbers don't include.</p>
+        <p class="small muted">All three failed safe: the customer got a person, not a wrong answer. One caveat applies to every set: I wrote both the messages and the rules. The real test is a few hundred of Park+'s own tickets.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="panel" id="product" hidden>
+    <div class="two first">
+      <div class="box prose">
+        <h2>The problem</h2>
+        <ul>
+          <li><b>Nearly half of the FASTag help is about one transaction.</b> Of the 43 FASTag articles in Park+'s help centre, 19 cover toll charges, recharges and blacklisting: charged twice, wrong amount, charged without crossing, recharge not credited, passbook missing.</li>
+          <li><b>Customers get templates, not answers.</b> App Store reviews of Park+ describe "copy-paste" support replies, a failed FASTag payment that took 48–72 hours to sort out, and developer responses that send everyone to the same support email.</li>
+          <li><b>Refunds are slow and opaque.</b> Users on forums like Team-BHP report wrong-deduction refunds taking 25–30 days through the bank, often after a first rejection.</li>
+          <li><b>A new category has arrived.</b> NHAI had issued 77 lakh+ Annual Passes by July 2026, about a third of car toll transactions. "Charged even though I have the pass" isn't in the help centre yet.</li>
+        </ul>
+      </div>
+      <div class="box prose">
+        <h2>What TagFix changes</h2>
+        <ul>
+          <li>The first reply is about <b>this customer's transactions</b>, not a help article. Every amount and ID in it traces to the passbook.</li>
+          <li>When the data proves an error, the dispute goes out <b>with evidence attached</b>, so the bank has less reason to reject it.</li>
+          <li>When a charge is correct (a return-trip fare, a state expressway not covered by the pass, a toll posted days late), it <b>explains why</b>, which is where most "copy-paste" frustration comes from.</li>
+          <li>When it isn't sure, it <b>hands off with the context</b> so the customer doesn't repeat themselves.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="two">
+      <div class="box prose">
+        <h2>How I'd measure it</h2>
+        <ul>
+          <li><b>Main metric:</b> share of FASTag tickets closed correctly without an agent.</li>
+          <li><b>Guardrail:</b> wrong-action rate, meaning a wrong refund filed or a wrong "your charge is correct". Target zero in shadow mode before anything goes live. One wrong "this is correct" costs more trust than ten handoffs.</li>
+          <li>Reopen rate within 7 days. Time to first useful reply. Dispute acceptance rate by the bank, which tells you whether the evidence works. CSAT on resolved chats.</li>
+        </ul>
+      </div>
+      <div class="box prose">
+        <h2>How I'd roll it out</h2>
+        <ol class="steps">
+          <li><b>Shadow mode.</b> Run on last month's FASTag tickets offline and compare with what agents did. This replaces my 90 self-written messages with a real number.</li>
+          <li><b>Agent assist.</b> Show the draft reply and evidence in the agent console. Track how often agents send it unchanged.</li>
+          <li><b>Auto-reply where no money moves.</b> Explanations first: return trips, late postings, pass coverage, used-up passes.</li>
+          <li><b>Auto-file disputes</b> once the bank's acceptance rate for evidence-backed disputes is known.</li>
+        </ol>
+      </div>
+    </div>
+    <div class="two">
+      <div class="box prose">
+        <h2>Risks</h2>
+        <ul>
+          <li><b>Telling someone a wrong charge is correct.</b> It only explains when a deterministic check says so; anything else goes to a person.</li>
+          <li><b>Stale data.</b> Late postings and pending reads change the picture. Checks use read time, not SMS time.</li>
+          <li><b>Rules change often</b> (Feb 2025 blacklist timing, Nov 2025 UPI rate, Annual Pass, KYV changes). Every policy number lives in one file.</li>
+          <li><b>An LLM inventing numbers.</b> It can only rephrase; a rewrite that changes any amount, time or ID is thrown away.</li>
+        </ul>
+      </div>
+      <div class="box prose">
+        <h2>What I'd need from Park+</h2>
+        <ul>
+          <li>A few hundred anonymised FASTag tickets with how they were closed, to replace my test sets.</li>
+          <li>Which fields the issuer banks actually return: read time vs posted time, plaza ID, vehicle class, decline codes.</li>
+          <li>Whether Park+ can see a tag's Annual Pass status, or only the ₹0 crossings.</li>
+          <li>Current dispute turnaround by bank, so replies quote Park+'s real numbers.</li>
+        </ul>
       </div>
     </div>
   </section>
@@ -205,8 +272,8 @@ footer { max-width: 1180px; margin: 28px auto 0; font-size: 12.5px; color: var(-
   <section class="panel" id="how" hidden>
     <ol class="flow">
       <li><h3>Read the message</h3><p>Keyword rules for English, Hinglish and Hindi. Optionally an LLM, whose answer must be one of the known issues or it's ignored.</p></li>
-      <li><h3>Look at the account</h3><p>If the message is vague but about money, and the passbook shows exactly one problem, use that, and tell the customer it was a guess.</p></li>
-      <li><h3>Check the facts</h3><p>Plain code decides what's true: duplicates, tariff by vehicle class, return-trip fares, impossible travel between plazas, stuck recharges, blacklist reason.</p></li>
+      <li><h3>Look at the account</h3><p>If the message is vague, or the customer's claim doesn't check out, but the passbook shows exactly one problem, answer that and say so. Non-FASTag topics (car wash, challan, parking) are never pulled in.</p></li>
+      <li><h3>Check the facts</h3><p>Plain code decides what's true: duplicates, tariff by vehicle class, return-trip fares, Annual Pass coverage and trips, read vs posted time, impossible travel between plazas, stuck recharges, blacklist reason.</p></li>
       <li><h3>Act and reply</h3><p>Resolve, file a dispute with evidence, ask one question, or hand off. The reply is built from the checked facts, so every amount and ID traces to a transaction.</p></li>
     </ol>
     <div class="two">
@@ -217,7 +284,7 @@ footer { max-width: 1180px; margin: 28px auto 0; font-size: 12.5px; color: var(-
       <div class="box prose">
         <h2>What's real and what isn't</h2>
         <ul>
-          <li>Plaza names and coordinates are real, so the distances are real. Tariffs, accounts and transactions are made up.</li>
+          <li>Plaza names, coordinates and operators are real, so distances and Annual Pass coverage are real. Tariffs, accounts and transactions are made up.</li>
           <li>The LLM layer (reading messages and rewriting replies in the customer's language) is built and unit-tested with a mocked model. It hasn't been run against live traffic, and this page runs without it.</li>
           <li>An LLM rewrite is thrown away if it drops or changes any amount, time, UPI reference or transaction ID.</li>
           <li>Everything on this page runs in your browser. Nothing is sent anywhere.</li>
