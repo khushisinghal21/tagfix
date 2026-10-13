@@ -1,0 +1,74 @@
+{
+  "KHERKI": {
+    "id": "KHERKI",
+    "operator": "NHAI",
+    "annualPass": true,
+    "name": "Kherki Daula, NH-48 (Gurugram)",
+    "lat": 28.3946,
+    "lon": 76.9813,
+    "tariff": {
+      "car": 80,
+      "lcv": 130,
+      "truck": 270
+    },
+    "returnTariff": {
+      "car": 120,
+      "lcv": 195,
+      "truck": 405
+    }
+  },
+  "SHAHJ": {
+    "id": "SHAHJ",
+    "operator": "NHAI",
+    "annualPass": true,
+    "name": "Shahjahanpur, NH-48 (Rajasthan)",
+    "lat": 27.9996,
+    "lon": 76.4295,
+    "tariff": {
+      "car": 140,
+      "lcv": 225,
+      "truck": 470
+    },
+    "returnTariff": {
+      "car": 210,
+      "lcv": 340,
+      "truck": 705
+    }
+  },
+  "PANIPAT": {
+    "id": "PANIPAT",
+    "operator": "NHAI",
+    "annualPass": true,
+    "name": "Panipat, NH-44 (Haryana)",
+    "lat": 29.3909,
+    "lon": 76.9635,
+    "tariff": {
+      "car": 165,
+      "lcv": 265,
+      "truck": 555
+    },
+    "returnTariff": {
+      "car": 250,
+      "lcv": 400,
+      "truck": 830
+    }
+  },
+  "KHALAPUR": {
+    "id": "KHALAPUR",
+    "operator": "MSRDC (state)",
+    "annualPass": false,
+    "name": "Khalapur, Mumbai–Pune Expressway",
+    "lat": 18.8327,
+    "lon": 73.2862,
+    "tariff": {
+      "car": 320,
+      "lcv": 495,
+      "truck": 940
+    },
+    "returnTariff": {
+      "car": 480,
+      "lcv": 745,
+      "truck": 1410
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "rules": {
+    "duplicateWindowMin": 30,
+    "maxPlausibleSpeedKmh": 150,
+    "rechargeSettleMin": 30,
+    "rechargeRefundAfterHours": 24,
+    "blacklistBeforeReadMin": 60,
+    "blacklistAfterReadMin": 10,
+    "noTagCashMultiplier": 2,
+    "noTagUpiMultiplier": 1.25,
+    "topUpBufferInr": 200,
+    "returnJourneyHours": 24,
+    "latePostingMin": 60,
+    "annualPassTrips": 200,
+    "annualPassFeeInr": 3075,
+    "disputeExpectation": "These usually take 2 to 4 weeks to resolve",
+    "disputeExpectationHinglish": "Isme aam taur par 2 se 4 hafte lagte hain"
+  },
+  "channels": {
+    "issuerDispute": "Issuer bank dispute (raised by Park+ ops)",
+    "nhaiHelpline": "NHAI helpline 1033",
+    "nhaiEmail": "falsededuction@ihmcl.com",
+    "annualPass": "NHAI Annual Pass grievance (Rajmargyatra / 1033)"
+  }
+}

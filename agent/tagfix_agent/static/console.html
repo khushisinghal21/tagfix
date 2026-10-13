@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TagFix Agent Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Overpass:wght@700;800&family=Overpass+Mono:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Devanagari:wght@400;600&display=swap">
+<style>
+/* Layout: sign band, then account passbook | ticket + agent trace. One column on phones. */
+:root {
+  --bg: #f3f6f4; --surface: #fff; --sunk: #e9efeb; --ink: #15201b; --muted: #5a6a62; --line: #d7e0da;
+  --sign: #0e6a42; --sign-ink: #fff; --accent: #0e6a42; --accent-soft: #dcefe4;
+  --warn: #9a6200; --warn-soft: #fbefd6; --bad: #b42318; --bad-soft: #fde4e1; --ok: #1d6b3a; --ok-soft: #dff1e5; --cite: #fff4c2;
+  --f-display: "Overpass", "Noto Sans", system-ui, sans-serif;
+  --f-body: "Noto Sans", "Noto Sans Devanagari", system-ui, sans-serif;
+  --f-mono: "Overpass Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #0e1412; --surface: #151d1a; --sunk: #1b2521; --ink: #e3ece7; --muted: #94a69d; --line: #26332e;
+  --sign: #0c5a38; --sign-ink: #f2fbf6; --accent: #46b882; --accent-soft: #173527;
+  --warn: #e6ad4f; --warn-soft: #33270f; --bad: #f2786c; --bad-soft: #3a1b18; --ok: #5cc68a; --ok-soft: #15301f; --cite: #3a3413; color-scheme: dark; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(--f-body); }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); } .small { font-size: 12.5px; }
+header { background: var(--sign); color: var(--sign-ink); padding: 16px; }
+header .wrap { max-width: 1200px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; }
+h1 { font: 800 26px/1 var(--f-display); margin: 0; }
+#mode { margin-left: auto; font: 700 12px var(--f-display); padding: 5px 10px; border-radius: 999px; background: rgba(255,255,255,.16); }
+main { max-width: 1200px; margin: 0 auto; padding: 18px 16px 48px; display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 860px) { main { grid-template-columns: minmax(0, 1fr); } }
+.box { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; min-width: 0; }
+.eyebrow { font: 700 11.5px var(--f-display); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 16px 0 8px; }
+.eyebrow:first-child { margin-top: 0; }
+select, textarea { width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; }
+textarea { min-height: 64px; resize: vertical; }
+button { font: inherit; cursor: pointer; }
+.go { background: var(--accent); color: var(--surface); border: 0; border-radius: 8px; padding: 10px 16px; font: 700 14px var(--f-display); }
+.go:disabled { opacity: .6; cursor: progress; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 12px; }
+.chip { background: var(--sunk); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; font-size: 13px; text-align: left; }
+.row { display: flex; gap: 8px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+.txns { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); font-size: 13px; }
+.txns li { display: grid; grid-template-columns: auto 1fr auto; gap: 2px 10px; padding: 8px 4px; border-bottom: 1px solid var(--line); }
+.txns li.cited { background: var(--cite); }
+.txns .where { grid-column: 1 / -1; color: var(--muted); }
+.pill { display: inline-block; font: 600 11.5px/1 var(--f-body); padding: 4px 7px; border-radius: 999px; background: var(--sunk); color: var(--muted); }
+.pill.ok { background: var(--ok-soft); color: var(--ok); } .pill.warn { background: var(--warn-soft); color: var(--warn); } .pill.bad { background: var(--bad-soft); color: var(--bad); }
+.bubble { border-radius: 14px; padding: 10px 14px; margin-top: 12px; }
+.bubble.cust { background: var(--sunk); margin-left: 12%; }
+.bubble.bot { background: var(--accent-soft); margin-right: 12%; }
+.who { display: block; font: 700 11.5px var(--f-display); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.decision { display: inline-block; font: 700 13px var(--f-display); padding: 5px 10px; border-radius: 6px; border: 1.5px solid currentColor; color: var(--accent); }
+.timeline { list-style: none; margin: 0; padding: 0 0 0 18px; border-left: 2px solid var(--line); display: grid; gap: 12px; }
+.timeline > li { position: relative; }
+.timeline > li::before { content: ""; position: absolute; left: -25px; top: 5px; width: 12px; height: 12px; border-radius: 50%; background: var(--surface); border: 2px solid var(--accent); }
+.timeline > li.rej::before { border-color: var(--bad); }
+.step { font: 700 13px var(--f-display); }
+.finding { font-size: 13px; padding: 6px 8px; border-radius: 6px; background: var(--sunk); margin-top: 4px; }
+.finding.used { background: var(--cite); }
+#result .row { margin: 12px 0 4px; }
+pre { background: var(--sunk); border-radius: 6px; padding: 8px; overflow-x: auto; font: 12px/1.5 var(--f-mono); margin: 4px 0 0; }
+.err { color: var(--bad); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header><div class="wrap"><h1>TagFix agent</h1><span class="small">LLM understanding · deterministic checks · guarded actions</span><span id="mode">…</span></div></header>
+<main>
+  <aside class="box">
+    <h2 class="eyebrow"><label for="acct">Customer account</label></h2>
+    <select id="acct"></select>
+    <p id="persona" class="small muted"></p>
+    <div id="overview"></div>
+  </aside>
+  <section class="box">
+    <h2 class="eyebrow"><label for="msg">Customer message</label></h2>
+    <div class="chips" id="examples"></div>
+    <textarea id="msg" placeholder="e.g. toll pe paise do baar kat gaye"></textarea>
+    <div class="row"><button class="go" id="go" type="button">Resolve ticket</button><span id="status" class="small muted" aria-live="polite"></span></div>
+    <div id="result"></div>
+  </section>
+</main>
+<script>
+const $ = (s) => document.querySelector(s);
+function el(tag, attrs = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) k === "class" ? (e.className = v) : e.setAttribute(k, v);
+  for (const k of kids.flat()) if (k != null) e.append(k instanceof Node ? k : document.createTextNode(String(k)));
+  return e;
+}
+const api = async (path, body) => {
+  const r = await fetch(path, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {});
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.detail || r.statusText);
+  return j;
+};
+const DECISION = { auto_resolved: "Resolved in chat", dispute_filed: "Dispute filed with evidence", needs_info: "Asked for one detail", escalated: "Handed to an agent" };
+let examples = {}, accounts = [];
+
+async function loadAccount() {
+  const id = $("#acct").value;
+  const a = accounts.find((x) => x.id === id);
+  $("#persona").textContent = a ? a.persona : "";
+  const o = await api(`/v1/accounts/${id}`);
+  const head = el("p", { class: "small" }, el("b", {}, o.vehicle), ` · ${o.tag} · ${o.vehicle_class} · balance `, el("span", { class: "mono" }, `₹${o.balance_inr}`), " · ",
+    el("span", { class: "pill " + (o.tag_status === "active" ? "ok" : "bad") }, o.tag_status));
+  const pass = o.annual_pass ? el("p", { class: "small" }, "Annual Pass: ", el("span", { class: "mono" }, `${o.annual_pass.trips_left} trips left`), o.annual_pass.used_up ? " (used up)" : "", ` · to ${o.annual_pass.valid_until}`) : null;
+  const list = el("ol", { class: "txns" }, [...o.transactions].reverse().map((t) => el("li", { "data-txn": t.id },
+    el("span", { class: "mono" }, el("b", {}, t.id)), el("span", { class: "mono muted" }, t.read_time),
+    el("span", { class: "mono" }, `${t.type === "toll" ? "−" : "+"}₹${t.amount_inr}`),
+    el("span", { class: "where" }, t.plaza || `Recharge ${t.payment_ref || ""}`, " ",
+      t.status !== "success" ? el("span", { class: "pill warn" }, t.status) : null,
+      t.annual_pass_trip ? el("span", { class: "pill ok" }, "pass trip") : null,
+      t.posted_time ? el("span", { class: "pill warn" }, `posted ${t.posted_time}`) : null))));
+  $("#overview").replaceChildren(el("h3", { class: "eyebrow" }, "Passbook"), head, pass, list);
+  $("#examples").replaceChildren(...(examples[id] || []).map((t) => { const b = el("button", { class: "chip", type: "button" }, t); b.onclick = () => { $("#msg").value = t; run(); }; return b; }));
+  $("#msg").value = (examples[id] || [""])[0];
+}
+
+function renderTrace(r) {
+  const items = [];
+  for (const t of r.trace) {
+    if (t.step === "triage") items.push(el("li", {}, el("div", { class: "step" }, "Triage"), el("div", { class: "small" }, `${t.language} · ${t.topic} · `, el("i", {}, t.claim))));
+    else if (t.step === "check") items.push(el("li", {}, el("div", { class: "step mono" }, t.tool), el("div", { class: "small muted" }, t.findings.length ? `findings ${t.findings.join(", ")}` : "nothing found")));
+    else if (t.step === "rejected") items.push(el("li", { class: "rej" }, el("div", { class: "step err" }, "Guardrail rejected an action"), el("div", { class: "small" }, t.reason)));
+    else if (t.step === "action") items.push(el("li", {}, el("div", { class: "step" }, `Action: ${t.action}`, t.finding ? ` on ${t.finding}` : ""), Object.keys(t.record || {}).length ? el("pre", {}, JSON.stringify(t.record, null, 2)) : null));
+    else if (t.step === "reply_rejected") items.push(el("li", { class: "rej" }, el("div", { class: "step err" }, "Reply rejected by guard"), el("div", { class: "small" }, t.problems.join("; "))));
+    else if (t.step === "reply") items.push(el("li", {}, el("div", { class: "step" }, `Reply sent (${t.source === "model" ? "written by the model" : "safe fallback"})`)));
+    else if (t.step === "triage_failed") items.push(el("li", { class: "rej" }, el("div", { class: "step err" }, "Triage output invalid; fell back"), el("div", { class: "small" }, t.error)));
+  }
+  return el("ol", { class: "timeline" }, items);
+}
+
+async function run() {
+  const message = $("#msg").value.trim();
+  if (!message) return;
+  $("#go").disabled = true; $("#status").textContent = "Agent working…";
+  try {
+    const r = await api("/v1/tickets/resolve", { account_id: $("#acct").value, message });
+    const cited = new Set([...(r.finding?.evidence || []), r.record?.txn_id].filter(Boolean));
+    for (const li of document.querySelectorAll(".txns li")) li.classList.toggle("cited", cited.has(li.dataset.txn));
+    const findings = r.trace.filter((t) => t.step === "check").flatMap((t) => t.findings);
+    $("#result").replaceChildren(
+      el("div", { class: "bubble cust" }, el("span", { class: "who" }, "Customer"), message),
+      el("div", { class: "bubble bot" }, el("span", { class: "who" }, "TagFix"), r.reply),
+      el("div", { class: "row" }, el("span", { class: "decision" }, DECISION[r.decision] || r.decision),
+        r.different_issue ? el("span", { class: "pill warn" }, "different issue than described") : null,
+        el("span", { class: "small muted" }, `${findings.length} findings · ${r.rejected_actions.length} actions rejected · mode ${r.mode}`)),
+      r.finding ? el("div", {}, el("h3", { class: "eyebrow" }, "Evidence acted on"), el("div", { class: "finding used" }, el("b", { class: "mono" }, `${r.finding.id} ${r.finding.kind}`), " ", r.finding.text)) : null,
+      el("h3", { class: "eyebrow" }, "Agent trace"), renderTrace(r));
+    $("#status").textContent = "";
+  } catch (e) {
+    $("#status").replaceChildren(el("span", { class: "err" }, e.message));
+  } finally { $("#go").disabled = false; }
+}
+
+(async () => {
+  const [h, accs, ex] = await Promise.all([api("/health"), api("/v1/accounts"), api("/v1/examples")]);
+  $("#mode").textContent = h.default_mode === "live" ? "Live · Gemini" : "Offline stand-in model (set GEMINI_API_KEY for live)";
+  accounts = accs; examples = ex;
+  $("#acct").replaceChildren(...accs.map((a) => el("option", { value: a.id }, `${a.owner} — ${a.persona}`)));
+  $("#acct").onchange = async () => { await loadAccount(); $("#result").replaceChildren(); };
+  $("#go").onclick = run;
+  $("#msg").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); run(); } });
+  await loadAccount();
+  run();
+})();
+</script>
+</body>
+</html>

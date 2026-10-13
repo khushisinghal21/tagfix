@@ -1,6 +1,19 @@
 # TagFix
 
-A FASTag support copilot that checks the customer's passbook before it replies.
+A FASTag support agent for Park+: it reads a customer's complaint (English, Hinglish or Hindi), checks their own transactions, takes one evidence-backed action, and replies.
+
+This repo has two parts:
+
+| | What | Run |
+|---|---|---|
+| **[`agent/`](agent/README.md)** | **The POC.** LangGraph + Gemini agent with deterministic check tools, guarded actions, a reply guard, a FastAPI service with a trace console, Docker, and 40 tests including guardrail red-teaming. | `cd agent && pip install -r requirements.txt && uvicorn tagfix_agent.service:app` |
+| `src/`, `web/` | The rules engine and a static demo page (no LLM) used to design the checks and build the labelled test sets. | `npm test && npm run build` |
+
+`data/` holds the shared accounts, plazas, rules and the 90 labelled test messages (`npm run export-data` regenerates it from `src/`).
+
+---
+
+## Design notes from the rules engine
 
 Nearly half of Park+'s FASTag help-centre articles (19 of 43) are about a single transaction: charged twice, wrong amount, charged without crossing, recharge not credited, blacklisted, passbook missing. App reviews describe the support for these as "copy-paste". And since NHAI's Annual Pass launched (77 lakh+ passes by July 2026, about a third of car toll transactions), there's a new one: "charged even though I have the pass".
 

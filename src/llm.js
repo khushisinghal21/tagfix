@@ -9,11 +9,12 @@
 
 import { INTENTS, understand as rulesUnderstand } from "./intents.js";
 
-const MODEL = "gemini-2.0-flash";
-const URL = (key) => `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${encodeURIComponent(key)}`;
+// gemini-2.0-flash was shut down; any current model id works. The Python agent is the maintained LLM path.
+const DEFAULT_MODEL = "gemini-3.8-flash";
+const URL = (key, model = DEFAULT_MODEL) => `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
 
-async function callGemini(prompt, { apiKey, fetchImpl = globalThis.fetch, json = false }) {
-  const res = await fetchImpl(URL(apiKey), {
+async function callGemini(prompt, { apiKey, model, fetchImpl = globalThis.fetch, json = false }) {
+  const res = await fetchImpl(URL(apiKey, model), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
