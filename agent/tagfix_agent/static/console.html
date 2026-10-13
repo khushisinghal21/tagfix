@@ -115,7 +115,7 @@ async function loadAccount() {
       t.status !== "success" ? el("span", { class: "pill warn" }, t.status) : null,
       t.annual_pass_trip ? el("span", { class: "pill ok" }, "pass trip") : null,
       t.posted_time ? el("span", { class: "pill warn" }, `posted ${t.posted_time}`) : null))));
-  $("#overview").replaceChildren(el("h3", { class: "eyebrow" }, "Passbook"), head, pass, list);
+  $("#overview").replaceChildren(...[el("h3", { class: "eyebrow" }, "Passbook"), head, pass, list].filter(Boolean));
   $("#examples").replaceChildren(...(examples[id] || []).map((t) => { const b = el("button", { class: "chip", type: "button" }, t); b.onclick = () => { $("#msg").value = t; run(); }; return b; }));
   $("#msg").value = (examples[id] || [""])[0];
 }
@@ -128,7 +128,7 @@ function renderTrace(r) {
     else if (t.step === "rejected") items.push(el("li", { class: "rej" }, el("div", { class: "step err" }, "Guardrail rejected an action"), el("div", { class: "small" }, t.reason)));
     else if (t.step === "action") items.push(el("li", {}, el("div", { class: "step" }, `Action: ${t.action}`, t.finding ? ` on ${t.finding}` : ""), Object.keys(t.record || {}).length ? el("pre", {}, JSON.stringify(t.record, null, 2)) : null));
     else if (t.step === "reply_rejected") items.push(el("li", { class: "rej" }, el("div", { class: "step err" }, "Reply rejected by guard"), el("div", { class: "small" }, t.problems.join("; "))));
-    else if (t.step === "reply") items.push(el("li", {}, el("div", { class: "step" }, `Reply sent (${t.source === "model" ? "written by the model" : "safe fallback"})`)));
+    else if (t.step === "reply") items.push(el("li", {}, el("div", { class: "step" }, `Reply sent (${t.source === "model" ? "written by the model, passed the reply guard" : "safe fallback"})`)));
     else if (t.step === "triage_failed") items.push(el("li", { class: "rej" }, el("div", { class: "step err" }, "Triage output invalid; fell back"), el("div", { class: "small" }, t.error)));
   }
   return el("ol", { class: "timeline" }, items);

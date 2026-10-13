@@ -4,6 +4,8 @@ An LLM agent that resolves FASTag support tickets. It reads the customer's messa
 
 Built with **LangGraph + Gemini**, served by **FastAPI**, and tested with **pytest** (40 tests).
 
+![Trace console: an Annual Pass holder charged ₹140. The agent runs check_annual_pass, gets findings F1 and F2, files a dispute on F2 with NHAI's pass grievance channel, and replies.](docs/console-pass.png)
+
 ```mermaid
 flowchart LR
   M[Customer message] --> T[Triage<br/>LLM: language, topic, claim]
@@ -32,6 +34,18 @@ flowchart LR
 | Allow the action, set amount / transaction / channel | | ✓ `tools.py` |
 | Write the reply in the customer's language | ✓ | |
 | Block invented IDs or amounts, false "refunded" claims, wrong script | | ✓ `guard.py` |
+
+### See it handle a misdescribed complaint
+
+The customer says they were asked to pay double. No double charge exists, so the agent checks the rest of the account, finds the tag is blacklisted for low balance, sends a ₹260 recharge link, and **tells the customer it found a different issue**.
+
+![Agent trace for a misdescribed complaint: nine checks, the blacklist finding acted on, recharge link sent](docs/console-different-issue.png)
+
+<details>
+<summary>On a phone: a toll posted three days late, so it asks before disputing</summary>
+
+<img src="docs/console-mobile.png" alt="Phone view: SMS today for a toll read on 10 Oct; the agent asks whether the car was at Kherki Daula then" width="360">
+</details>
 
 ### Guardrails (all tested in `tests/test_guardrails.py`)
 

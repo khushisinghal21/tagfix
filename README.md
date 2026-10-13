@@ -2,6 +2,10 @@
 
 A FASTag support agent for Park+: it reads a customer's complaint (English, Hinglish or Hindi), checks their own transactions, takes one evidence-backed action, and replies.
 
+![TagFix agent console: an Annual Pass holder charged ₹140 at an NHAI plaza. The agent runs the pass check, files a dispute citing finding F2, and replies.](agent/docs/console-pass.png)
+
+<sub>The agent console (<code>agent/</code>): triage → the check it ran → the finding it acted on → the dispute record → the reply.</sub>
+
 This repo has two parts:
 
 | | What | Run |
@@ -10,6 +14,17 @@ This repo has two parts:
 | `src/`, `web/` | The rules engine and a static demo page (no LLM) used to design the checks and build the labelled test sets. | `npm test && npm run build` |
 
 `data/` holds the shared accounts, plazas, rules and the 90 labelled test messages (`npm run export-data` regenerates it from `src/`).
+
+
+### Screenshots
+
+| Agent: claim doesn't check out, so it finds the real issue | Agent on a phone: late-posted toll, asks before disputing |
+|---|---|
+| ![Customer says they were asked to pay double; the agent finds the tag is blacklisted for low balance and sends a ₹260 recharge link](agent/docs/console-different-issue.png) | ![SMS today for a toll read three days ago; the agent asks whether the car was there before disputing](agent/docs/console-mobile.png) |
+
+| Rules demo: Try it | Scorecard (first-run numbers only) | Product case |
+|---|---|---|
+| ![Static demo: customer picker, passbook and reply](docs/try-desktop.png) | ![Scorecard across four test sets with keyword-only vs triage results](docs/score.png) | ![Product case: problem, measurement, rollout, risks](docs/product.png) |
 
 ---
 
