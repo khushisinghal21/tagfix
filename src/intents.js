@@ -5,6 +5,8 @@
 import { PLAZAS } from "./data.js";
 
 export const INTENTS = [
+  "annual_pass",
+  "paid_at_booth",
   "double_deduction",
   "false_deduction",
   "wrong_amount",
@@ -18,6 +20,20 @@ export const INTENTS = [
 // before broader ones ("recharge kiya, balance nahi aaya" is a recharge issue, not a
 // generic deduction complaint).
 const PATTERNS = [
+  // Annual Pass first: "pass hai phir bhi kata" is about the pass, not a generic deduction.
+  ["annual_pass", [
+    /annual\s*(pass|plan|toll pass|fastag)/i, /(yearly|annual)\s*(fastag\s*|toll\s*)?(pass|plan)/i, /(saal|saala|saalana|salana|sal)\s*(ka|wala|bhar ka)?\s*pass/i,
+    /\b3,?0[0-9]{2}\s*(wala|rs|₹|rupees?|ka)?\s*pass/i, /trips?\s*(left|remaining|bache|bachi|khatam|used up|over|finish)/i,
+    /\bpass\b.*\b(active|activated|trips?|khatam|expired?|kaam nahi|stopped|not working|liya|li thi|hone ke baad|hai phir bhi|ke bawajood)\b/i,
+    /(my|mera|meri)\s+pass\b/i, /वार्षिक पास|सालाना पास|एनुअल पास/, /rajmarg\s*yatra/i,
+  ]],
+  // Paid at the booth (cash/UPI/QR) and the tag was charged too.
+  ["paid_at_booth", [
+    /(paid|pay kiya|pay kar|diya|de diya|gave).{0,40}(booth|counter|cash|upi|qr|gpay|phonepe|paytm)\b.{0,60}(tag|fastag|also|bhi)/i,
+    /(cash|counter|booth|upi)\s*(pe|par|at)?\s*(bhi|also).{0,40}(tag|fastag)/i,
+    /(cash|upi|counter|booth).{0,30}\b(and|aur|plus)\b.{0,30}(tag|fastag).{0,20}(bhi|also|too|deduct|kat|charge)/i,
+    /once (at|from) (the )?(counter|booth|cash)/i, /(tag|fastag) (didn'?t|did not|nahi|nahin) (scan|read|chala|work).{0,60}(paid|diya|cash|upi)/i,
+  ]],
   ["recharge_not_reflecting", [
     /recharge.*(not|nahi|nahin|na).*(reflect|credit|update|aaya|aya|dikh|show)/i,
     /(paid|payment|pay kiya|paise kat|deducted from (my )?bank|upi).*(balance|wallet).*(not|nahi|same|still)/i,
@@ -26,7 +42,8 @@ const PATTERNS = [
     /balance (not|nahi) (updated|aaya|badha)/i,
   ]],
   ["blacklisted", [
-    /black\s*-?\s*list/i, /hot\s*-?\s*list/i, /ब्लैकलिस्ट/,
+    /black\s*-?\s*list/i, /hot\s*-?\s*list/i, /ब्लैकलिस्ट/, /kyc (pending|incomplete|nahi hua)/i,
+    /(tag|fastag)\s*(is |got |has been )?(blocked|band|inactive|deactivated|suspended)/i,
     /(tag|fastag).*(declined|not working|nahi chal|nahi chala|reject)/i,
     /toll (pe|par) (tag )?(nahi|nahin) (chala|chal raha)/i,
   ]],

@@ -32,10 +32,49 @@ export function findDuplicates(acc) {
   return out;
 }
 
+/**
+ * Annual Pass state at a moment: "none", "before_activation", "active", "exhausted", "expired".
+ * The pass is NHAI's; this reads the pass record the issuer receives with the tag.
+ */
+export function passStateAt(acc, iso) {
+  const p = acc.annualPass;
+  if (!p) return "none";
+  const t = Date.parse(iso);
+  if (t < Date.parse(p.activatedAt)) return "before_activation";
+  if (p.exhaustedAt && t > Date.parse(p.exhaustedAt)) return "exhausted";
+  if (t >= Date.parse(p.expiresAt)) return "expired";
+  return "active";
+}
+
+/** Why a toll was (or wasn't) covered by the Annual Pass. */
+export function passVerdict(acc, txn) {
+  const state = passStateAt(acc, txn.time);
+  const plaza = PLAZAS[txn.plazaId];
+  if (state === "none") return { verdict: "no_pass" };
+  if (state !== "active") return { verdict: state };
+  if (!plaza?.annualPass) return { verdict: "not_covered", operator: plaza?.operator };
+  return { verdict: txn.amount > 0 ? "should_be_free" : "covered" };
+}
+
+/** Tolls charged at a covered plaza while the Annual Pass was active. */
+export function findPassMisses(acc) {
+  if (!acc.annualPass) return [];
+  return tolls(acc).filter((x) => x.amount > 0 && passVerdict(acc, x).verdict === "should_be_free");
+}
+
+/** Tolls the plaza posted long after the tag was read (SMS arrives on a different day). */
+export function findLatePostings(acc) {
+  return tolls(acc).filter((x) => x.postedTime && minutes(x.time, x.postedTime) > RULES.latePostingMin)
+    .map((x) => ({ txn: x, delayHours: Math.round(minutes(x.time, x.postedTime) / 6) / 10 }));
+}
+
 /** The tariff this vehicle should have paid for a toll, accounting for return journeys. */
 export function expectedTariff(acc, txn) {
   const plaza = PLAZAS[txn.plazaId];
   if (!plaza) return null;
+  if (acc.annualPass && plaza.annualPass && passStateAt(acc, txn.time) === "active") {
+    return { amount: 0, kind: "annual_pass" };
+  }
   const prior = tolls(acc).filter((x) => x.plazaId === txn.plazaId && x.id !== txn.id
     && minutes(x.time, txn.time) > RULES.duplicateWindowMin // a read minutes later is a duplicate, not a return trip
     && minutes(x.time, txn.time) <= RULES.returnJourneyHours * 60);
@@ -50,7 +89,8 @@ export function expectedTariff(acc, txn) {
 export function findOvercharges(acc) {
   return tolls(acc).flatMap((txn) => {
     const exp = expectedTariff(acc, txn);
-    if (!exp || txn.amount <= exp.amount) return [];
+    // Pass misses are their own issue (findPassMisses), not a wrong vehicle class.
+    if (!exp || exp.kind === "annual_pass" || txn.amount <= exp.amount) return [];
     const plaza = PLAZAS[txn.plazaId];
     const chargedAs = Object.entries(plaza.tariff).find(([, v]) => v === txn.amount)?.[0] ?? null;
     return [{ txn, expected: exp.amount, expectedKind: exp.kind, excess: txn.amount - exp.amount, chargedAs }];

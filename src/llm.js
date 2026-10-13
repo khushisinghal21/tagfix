@@ -50,7 +50,7 @@ export function lockedTokens(text) {
   return [...new Set([
     ...(text.match(/TX-\d+/g) ?? []),
     ...(text.match(/UPI-\d+/g) ?? []),
-    ...(text.match(/₹\d+/g) ?? []),
+    ...(text.match(/₹[\d,]+\d/g) ?? []),
     ...(text.match(/\b\d{1,2}:\d{2}\b/g) ?? []),
   ])];
 }
